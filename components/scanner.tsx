@@ -18,12 +18,7 @@ import { LeadForm } from "@/components/lead-form";
 import { cn } from "@/lib/utils";
 import type { RiskLevel, ScanResult } from "@/lib/types";
 
-const SAMPLE_QUERIES = [
-  "Razorpay",
-  "Zomato",
-  "Mumbai Chai",
-  "Hyderabad Health",
-];
+const SAMPLE_QUERIES = ["Razorpay", "Zepto", "Meesho", "Khatabook"];
 
 const EXAMPLE_RESULT: ScanResult = {
   companyName: "Mumbai Chai Co.",

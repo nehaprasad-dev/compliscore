@@ -197,9 +197,9 @@ export const mockCompanies: Company[] = [
     pan: "AAACK1212K",
     gstin: "29AAACK1212K1ZV",
     industry: "SaaS — SMB Bookkeeping",
-    lastGstFilingMonth: monthsAgo(1),
+    lastGstFilingMonth: monthsAgo(2),
     mcaFilingStatus: "Filed",
-    pendingNotices: [],
+    pendingNotices: ["Routine GST input-credit reconciliation query"],
   },
   {
     name: "ClearTax (Defmacro Software Pvt Ltd)",
