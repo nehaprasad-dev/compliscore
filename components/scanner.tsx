@@ -9,18 +9,21 @@ import {
   Sparkles,
   Search,
   Loader2,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LeadForm } from "@/components/lead-form";
 import { cn } from "@/lib/utils";
 import type { RiskLevel, ScanResult } from "@/lib/types";
 
 const SAMPLE_QUERIES = [
+  "Razorpay",
+  "Zomato",
   "Mumbai Chai",
-  "Bengaluru Bytes",
   "Hyderabad Health",
 ];
 
@@ -112,6 +115,21 @@ function ResultCard({ result }: { result: ScanResult }) {
         </CardHeader>
 
         <CardContent className="space-y-5">
+          {result.isSample && (
+            <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3">
+              <Info className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+              <p className="text-xs leading-relaxed text-amber-900">
+                <span className="font-semibold">Sample data.</span> This
+                profile is generated from the name you typed and is for
+                illustration only — it is <span className="font-semibold">not</span>{" "}
+                pulled from {result.companyName}&rsquo;s actual GST or MCA
+                filings (that data is private to the taxpayer and not
+                available via any public API). For a real scan based on your
+                own filings, DM for the ₹5,000 service below.
+              </p>
+            </div>
+          )}
+
           <div className="flex items-end gap-3">
             <span
               className={cn(
@@ -173,6 +191,8 @@ function ResultCard({ result }: { result: ScanResult }) {
               ))}
             </div>
           </div>
+
+          <LeadForm result={result} />
         </CardContent>
       </Card>
     </motion.div>

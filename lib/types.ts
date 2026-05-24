@@ -9,8 +9,8 @@ export type Company = {
   lastGstFilingMonth: string;
   mcaFilingStatus: "Filed" | "Overdue";
   pendingNotices: string[];
-  /** Optional: extra context the AI summary can use. */
-  notes?: string;
+  /** True when the profile is synthetic (built from the typed name, not curated). */
+  isSample?: boolean;
 };
 
 export type ScanResult = {
@@ -23,4 +23,6 @@ export type ScanResult = {
   monthsOverdue: number;
   aiSummary: string;
   aiSummaryFallback: boolean;
+  /** True when this result was built from a synthetic profile (see Company.isSample). */
+  isSample: boolean;
 };

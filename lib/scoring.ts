@@ -104,5 +104,6 @@ export function computeHealth(
     pendingTasks: buildPendingTasks(company, gstMonths),
     penaltyEstimate: estimatePenalty(gstMonths, company),
     monthsOverdue: gstMonths,
+    isSample: company.isSample === true,
   };
 }

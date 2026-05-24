@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
-import { findCompany } from "@/lib/mock-data";
+import { findOrBuildCompany } from "@/lib/mock-data";
 import { computeHealth } from "@/lib/scoring";
 import type { ScanResult } from "@/lib/types";
 
@@ -12,7 +12,7 @@ const FALLBACK_SUMMARY =
 function buildPrompt(
   health: Omit<ScanResult, "aiSummary" | "aiSummaryFallback">,
 ): string {
-  return [
+  const lines: string[] = [
     `You are a friendly Indian compliance consultant writing a quick health report for a startup founder.`,
     ``,
     `Company: ${health.companyName}`,
@@ -30,7 +30,16 @@ function buildPrompt(
     `3. A numbered 3-step action plan ordered by urgency.`,
     ``,
     `Rules: Use plain English. Briefly explain any acronym (e.g. "GSTR-3B (monthly GST return)"). No legal disclaimers. No headings in markdown — just plain paragraphs and a numbered list.`,
-  ].join("\n");
+  ];
+
+  if (health.isSample) {
+    lines.push(
+      ``,
+      `IMPORTANT: This profile was NOT pulled from this company's actual government filings (that data is not publicly available). It is an illustrative sample generated from a typical profile. Phrase findings as illustrative — use language like "based on a typical profile for a company of this type" or "if this scenario matched your real filings" rather than asserting specific facts about ${health.companyName}. End by encouraging the founder to confirm with a real scan.`,
+    );
+  }
+
+  return lines.join("\n");
 }
 
 async function generateAiSummary(
@@ -80,14 +89,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const company = findCompany(companyName);
+  const company = findOrBuildCompany(companyName);
   if (!company) {
     return NextResponse.json(
-      {
-        error:
-          "We couldn't find that company in our demo dataset. Try 'Mumbai Chai', 'Bengaluru Bytes', 'Delhi Threads', 'Chennai Coders', 'Pune Fintech' or 'Hyderabad Health'.",
-      },
-      { status: 404 },
+      { error: "Please enter a company name." },
+      { status: 400 },
     );
   }
 
