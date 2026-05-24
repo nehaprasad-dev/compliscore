@@ -28,44 +28,76 @@ body {
     "Times New Roman", Times, serif;
 }
 
-/* Subtle dot grid pattern, fades out toward the edges via a radial mask. */
+/* ─── Background layers ───────────────────────────────────────────── */
+
+/* Dot grid — visible enough to register as a pattern. */
 .bg-dots {
   background-image: radial-gradient(
     circle,
-    rgb(24 24 27 / 0.08) 1px,
+    rgb(24 24 27 / 0.22) 1px,
     transparent 1px
   );
-  background-size: 22px 22px;
-  background-position: 0 0;
+  background-size: 20px 20px;
   -webkit-mask-image: radial-gradient(
-    ellipse 70% 60% at 50% 30%,
+    ellipse 80% 70% at 50% 30%,
     black 0%,
-    transparent 75%
+    transparent 80%
   );
   mask-image: radial-gradient(
-    ellipse 70% 60% at 50% 30%,
+    ellipse 80% 70% at 50% 30%,
     black 0%,
-    transparent 75%
+    transparent 80%
   );
 }
 
-/* Subtle warm corner glow — sits behind hero on the top-right. */
+/* Aurora-style gradient blobs — three color anchors for the mesh. */
 .warm-blob {
   background: radial-gradient(
     closest-side,
-    rgba(251, 191, 36, 0.18) 0%,
-    rgba(251, 191, 36, 0.06) 50%,
+    rgba(251, 191, 36, 0.65) 0%,
+    rgba(251, 146, 60, 0.35) 45%,
     transparent 80%
   );
-  filter: blur(40px);
+  filter: blur(48px);
 }
 
 .cool-blob {
   background: radial-gradient(
     closest-side,
-    rgba(16, 185, 129, 0.12) 0%,
-    rgba(16, 185, 129, 0.04) 50%,
+    rgba(16, 185, 129, 0.55) 0%,
+    rgba(20, 184, 166, 0.28) 45%,
     transparent 80%
   );
-  filter: blur(40px);
+  filter: blur(48px);
 }
+
+.sky-blob {
+  background: radial-gradient(
+    closest-side,
+    rgba(96, 165, 250, 0.50) 0%,
+    rgba(167, 139, 250, 0.25) 45%,
+    transparent 80%
+  );
+  filter: blur(48px);
+}
+
+/* Conic halo — visible glow behind the headline. */
+.headline-halo {
+  background: conic-gradient(
+    from 220deg at 50% 50%,
+    rgba(251, 191, 36, 0.28) 0deg,
+    rgba(16, 185, 129, 0.28) 120deg,
+    rgba(96, 165, 250, 0.28) 240deg,
+    rgba(251, 191, 36, 0.28) 360deg
+  );
+  filter: blur(64px);
+}
+
+/* SVG noise texture — visible grain for a "designed" feel. */
+.bg-noise {
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 220px 220px;
+  opacity: 0.075;
+  mix-blend-mode: multiply;
+}
+
