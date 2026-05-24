@@ -26,5 +26,46 @@ body {
 .font-serif {
   font-family: var(--font-instrument-serif), ui-serif, Georgia, Cambria,
     "Times New Roman", Times, serif;
-  font-feature-settings: "ss01" on, "liga" on;
+}
+
+/* Subtle dot grid pattern, fades out toward the edges via a radial mask. */
+.bg-dots {
+  background-image: radial-gradient(
+    circle,
+    rgb(24 24 27 / 0.08) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+  background-position: 0 0;
+  -webkit-mask-image: radial-gradient(
+    ellipse 70% 60% at 50% 30%,
+    black 0%,
+    transparent 75%
+  );
+  mask-image: radial-gradient(
+    ellipse 70% 60% at 50% 30%,
+    black 0%,
+    transparent 75%
+  );
+}
+
+/* Subtle warm corner glow — sits behind hero on the top-right. */
+.warm-blob {
+  background: radial-gradient(
+    closest-side,
+    rgba(251, 191, 36, 0.18) 0%,
+    rgba(251, 191, 36, 0.06) 50%,
+    transparent 80%
+  );
+  filter: blur(40px);
+}
+
+.cool-blob {
+  background: radial-gradient(
+    closest-side,
+    rgba(16, 185, 129, 0.12) 0%,
+    rgba(16, 185, 129, 0.04) 50%,
+    transparent 80%
+  );
+  filter: blur(40px);
 }

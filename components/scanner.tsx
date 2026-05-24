@@ -218,9 +218,9 @@ function ResultView({
         )}
       </div>
 
-      <figure className="border-l-2 border-zinc-900 pl-4">
+      <figure className="rounded-2xl bg-white p-5 ring-1 ring-zinc-200/70">
         <figcaption className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-500">
-          <Sparkles className="h-3 w-3" />
+          <Sparkles className="h-3 w-3 text-amber-500" />
           AI action plan
           {result.aiSummaryFallback && (
             <span className="ml-1 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium normal-case tracking-normal text-amber-800">
@@ -228,7 +228,7 @@ function ResultView({
             </span>
           )}
         </figcaption>
-        <blockquote className="mt-2 space-y-2 font-serif text-[17px] leading-[1.55] text-zinc-800">
+        <blockquote className="mt-3 space-y-2.5 text-[14px] leading-[1.6] text-zinc-800">
           {summaryParagraphs.map((p, idx) => (
             <p key={idx} className="whitespace-pre-line">
               {p}
