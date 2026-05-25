@@ -1,60 +1,87 @@
 # CompliScore
 
-**A 60-second compliance health check for Indian startups.**
+### Your startup's compliance health — checked in 60 seconds.
 
-Type a company name. Get a score, overdue filings, a rough penalty range, and a plain-English action plan — in under two seconds. Built mobile-first for founders who want to know *“are we in trouble?”* before talking to a CA.
+Every Indian startup founder knows the feeling. You're moving fast, shipping product, chasing revenue — and somewhere in the back of your mind there's a quiet voice asking: *"Have we filed everything? Are we going to get a notice?"*
 
-> **Important:** This app uses **demo data only**. It does not pull live GST, MCA, or notice records from any government system. Real filing history is private to the company (or its CA with OTP access). The free scan is a diagnostic teaser; the paid scan is where filings-backed work happens. See [PLAYBOOK.md](./PLAYBOOK.md) for how to deliver that service.
+CompliScore answers that question before it becomes a problem.
 
----
+Type any company name. In under two seconds you get a **compliance score out of 100**, a list of what's overdue, a rough penalty estimate, and an **AI-written action plan** in plain English — not CA jargon.
 
-## What you get
-
-- **Compliance score (0–100)** with Low / Medium / High risk badge  
-- **Pending tasks** — GST, MCA, notices spelled out as checkboxes  
-- **Penalty estimate** — directional ranges, not legal advice  
-- **AI action plan** — short, founder-friendly summary via Groq (`llama-3.3-70b-versatile`)  
-- **Lead capture** — WhatsApp or email for the paid ₹5,000 real scan  
-- **Works for any name** — curated profiles for well-known companies; deterministic synthetic profiles for everything else (clearly labelled “Sample data”)
+It's free, it's instant, and it runs on your phone. No login, no documents, no waiting.
 
 ---
 
-## How it works
+## The problem it solves
+
+India's startup ecosystem is booming, but compliance is still confusing. GST returns, MCA annual filings, TDS deadlines, random notices — most early-stage founders don't know where they stand until a CA tells them they're behind. By then, penalties have already started piling up.
+
+There's no simple way for a non-finance founder to just *check* if things are okay. That's what CompliScore is for.
+
+You type your company name. You get a score. You see exactly what's pending. And if it's bad, you see how much it might cost you. That's it. The whole thing takes less time than ordering chai.
+
+---
+
+## What you actually get
+
+When you scan a company, the result card shows:
+
+- **Compliance score (0–100)** — green, amber, or red. You know instantly where you stand.
+- **Risk badge** — Low, Medium, or High. No ambiguity.
+- **Pending tasks** — every overdue filing and unresolved notice, spelled out one by one. GSTR-3B, MCA annual return, pending notices — all of it.
+- **Penalty estimate** — a rough range of what the government could charge you if these stay unresolved. Not legal advice, but enough to make you pay attention.
+- **AI action plan** — a short, founder-friendly breakdown of what to do first, what's urgent, and what can wait. Written by Groq's `llama-3.3-70b-versatile` model, scoped to under 150 words so you actually read it.
+- **Paid scan CTA** — if the free scan scares you (or excites you), there's a one-tap path to request a real, filings-backed scan for ₹5,000 delivered in 2 hours.
+
+---
+
+## How it actually works under the hood
 
 ```
-Founder types a name → POST /api/scan → lookup or synthesize profile
-                    → scoring engine → Groq summary → result card + lead form
+You type a name → we look it up → score it → generate an AI summary → show you everything
 ```
 
-1. User enters a company name and taps **Scan** (or picks a suggestion chip).
-2. The client calls `POST /api/scan` with `{ companyName }`.
-3. **Curated match** — `lib/mock-data.ts` finds a hand-written profile (partial, case-insensitive match; e.g. `razor` → Razorpay).  
-   **No match** — `buildSyntheticCompany()` builds a deterministic demo profile from the name hash. Same name → same result every time. Flagged `isSample: true` in the API and shown in the UI.
-4. `lib/scoring.ts` computes the score:
-   - Start at **100**
-   - **−15** per overdue GST month (GSTR-3B cadence)
-   - **−20** if MCA annual return is overdue
-   - **−10** per pending notice  
-   - Clamped to 0–100. Risk: **≥70 Low**, **40–69 Medium**, **&lt;40 High**
-5. Structured health data goes to Groq with a tight prompt (&lt;150 words, three sections). Sample profiles are described as illustrative, not factual.
-6. If `GROQ_API_KEY` is missing or the call fails, the user still gets scores and tasks — only `aiSummary` falls back to static text (`aiSummaryFallback: true`).
+Here's the slightly longer version:
 
-After the scan, **LeadForm** posts to `POST /api/lead`, validates Indian mobile or email, and forwards JSON to `LEAD_WEBHOOK_URL` (or logs in dev if unset).
+1. You enter a company name and hit **Scan** (or tap one of the suggestion chips — Razorpay, Zepto, Meesho, Khatabook).
+2. The frontend sends `{ companyName }` to `POST /api/scan`.
+3. We try to match that name against ~36 curated Indian company profiles. The match is fuzzy and forgiving — "razor" finds Razorpay, "cred" finds CRED.
+4. **If we find a match**, we use that hand-built profile. **If we don't**, we generate a deterministic synthetic profile from the company name (same name always produces the same result, clearly labelled "Sample data" in the UI).
+5. The scoring engine in `lib/scoring.ts` does the math:
+   - Everyone starts at **100**.
+   - You lose **15 points** for every month your GST return (GSTR-3B) is overdue.
+   - You lose **20 points** if your MCA annual return hasn't been filed.
+   - You lose **10 points** for each pending government notice.
+   - Score is clamped between 0 and 100. **70+ is Low risk. 40–69 is Medium. Below 40 is High.**
+6. That structured result goes to Groq with a tight prompt. The AI writes a short, three-part action plan in plain English. If the profile is synthetic, the prompt tells the model to phrase everything as illustrative, not factual.
+7. If Groq is down or you haven't set an API key, the app still works perfectly — you just get a static fallback instead of the AI summary. The score, tasks, and penalty estimate are always there.
+
+After the scan, a **lead capture form** lets founders drop their WhatsApp number or email to request the paid real scan. That submission goes to `POST /api/lead`, gets validated (Indian 10-digit mobile or email), and is forwarded to whatever webhook you've configured — Discord, Slack, Zapier, Formspree, anything.
+
+---
+
+## A note about the data
+
+Let's be upfront: CompliScore runs on **demo data**. It does not connect to any government portal. Real GST filing history, MCA delinquency records, and pending notices are **private** in India — only the company itself (or its CA with OTP-authenticated access) can pull them.
+
+That's the whole point of the business model. The free scan gives founders an instant, recognizable "oh shit" moment using curated or synthetic data. The **paid scan** (₹5,000, 2-hour delivery) is where we actually log into portals with the founder's credentials and pull real filings. See [PLAYBOOK.md](./PLAYBOOK.md) for the full fulfilment workflow.
+
+All company names in the mock dataset are used for **demo recognition only**. PANs and GSTINs are format-plausible placeholders, not real identifiers. Nothing in this app makes any claim about any real company's actual compliance status.
 
 ---
 
 ## Tech stack
 
-| Layer | Choice |
-|--------|--------|
-| Framework | Next.js 16 (App Router) |
-| Styling | Tailwind CSS v4 |
-| UI | Hand-rolled shadcn-style primitives in `components/ui/` |
-| Motion | Framer Motion (score count-up, result transitions) |
-| AI | Groq SDK → `llama-3.3-70b-versatile` |
-| Language | TypeScript (strict) |
+| What | Why |
+|------|-----|
+| **Next.js 16** (App Router) | Server-side API routes + React frontend in one project. No separate backend needed. |
+| **Tailwind CSS v4** | Fast styling with a premium editorial feel — dot-grid backgrounds, aurora blobs, serif headlines. |
+| **Framer Motion** | Smooth score count-up animation and result card transitions. Makes the 2-second scan feel alive. |
+| **Groq SDK** (`llama-3.3-70b-versatile`) | Fast, cheap AI summaries. Falls back gracefully if the key is missing. |
+| **TypeScript** (strict) | End-to-end type safety. Every API response, every component prop, every scoring function. |
+| **shadcn-style primitives** | Hand-rolled `Button`, `Input`, `Card`, `Badge`, `Skeleton` in `components/ui/`. No external component library. |
 
-No database, no auth, no government APIs — by design.
+No database. No auth. No government APIs. That's intentional — this ships in a day and runs on Vercel's free tier.
 
 ---
 
@@ -62,37 +89,38 @@ No database, no auth, no government APIs — by design.
 
 ```
 app/
-  layout.tsx              # Fonts, metadata, global shell
-  page.tsx                # Hero, navbar, background, scanner section
-  globals.css             # Tailwind + editorial background utilities
+  layout.tsx              # Root layout — fonts (Geist + Instrument Serif), metadata
+  page.tsx                # Hero section, navbar, aurora background, scanner embed
+  globals.css             # Tailwind v4 + custom background effects (dots, blobs, noise)
   api/
-    scan/route.ts         # Scoring + Groq summary
-    lead/route.ts         # Lead validation + webhook forward
+    scan/route.ts         # POST /api/scan — profile lookup, scoring, Groq call
+    lead/route.ts         # POST /api/lead — validation, webhook forwarding
 
 components/
-  scanner.tsx             # Input, chips, skeleton, result card, example preview
-  lead-form.tsx           # Paid scan CTA (₹5,000)
-  ui/                     # Button, Input, Card, Badge, Skeleton
+  scanner.tsx             # The main event — search input, suggestion chips, skeleton
+                          #   loader, animated score, result card, example preview
+  lead-form.tsx           # Paid scan CTA card (₹5,000 / 2-hour delivery)
+  ui/                     # Button, Input, Card, Badge, Skeleton primitives
 
 lib/
-  types.ts                # Shared types (Company, ScanResult, RiskLevel)
-  mock-data.ts            # ~36 curated companies + synthetic builder
-  scoring.ts              # Pure scoring + penalty estimate
-  utils.ts                # cn() helper
+  types.ts                # Company, ScanResult, RiskLevel types
+  mock-data.ts            # ~36 curated Indian companies + synthetic profile builder
+  scoring.ts              # Pure scoring engine + penalty estimator
+  utils.ts                # cn() (clsx + tailwind-merge)
 
 scripts/
-  record-demo.mjs         # Playwright — records marketing demo (webm)
-  encode-demo.sh          # ffmpeg — exports MP4 + GIF
+  record-demo.mjs         # Playwright script — records a marketing demo as webm
+  encode-demo.sh          # ffmpeg pipeline — converts to MP4 + GIF
 
-PLAYBOOK.md               # How to fulfil paid scans (internal ops)
-.env.local.example        # GROQ_API_KEY, LEAD_WEBHOOK_URL
+PLAYBOOK.md               # Internal ops guide for fulfilling paid scans
+.env.local.example        # Environment variable reference
 ```
 
 ---
 
-## Run locally
+## Getting started
 
-**Prerequisites:** Node 20+, npm
+**You need:** Node 20+ and npm.
 
 ```bash
 git clone https://github.com/nehaprasad-dev/compliscore.git
@@ -101,93 +129,97 @@ npm install
 cp .env.local.example .env.local
 ```
 
-Edit `.env.local`:
+Open `.env.local` and optionally fill in:
 
-| Variable | Required? | Purpose |
-|----------|-----------|---------|
-| `GROQ_API_KEY` | No | AI action plan. [Free key](https://console.groq.com/keys). Without it, fallback text is used. |
-| `LEAD_WEBHOOK_URL` | No (yes for prod) | JSON `POST` target for leads — Formspree, Discord, Slack, Zapier, n8n, etc. Empty = console log in dev. |
+| Variable | Required? | What it does |
+|----------|-----------|--------------|
+| `GROQ_API_KEY` | No | Powers the AI action plan. Grab a free one at [console.groq.com/keys](https://console.groq.com/keys). Without it, everything still works — you just see a static fallback summary. |
+| `LEAD_WEBHOOK_URL` | No (yes for prod) | Where lead form submissions get forwarded. Works with Discord webhooks, Slack incoming webhooks, Formspree, Zapier, n8n — anything that accepts a JSON POST. If empty, leads just print to the dev console. |
+
+Then:
 
 ```bash
-npm run dev
+npm run dev          # start dev server
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000) and try scanning "Razorpay" or "Zepto".
 
 ```bash
-npm run build   # production build
-npm run start   # serve production build
-npm run lint    # ESLint
+npm run build        # production build
+npm run start        # serve production build
+npm run lint         # ESLint check
 ```
 
 ---
 
-## Try it
+## Companies you can try
 
-**Suggestion chips on the homepage:** Razorpay · Zepto · Meesho · Khatabook
+**Suggestion chips on the homepage:** Razorpay, Zepto, Meesho, Khatabook
 
-**More curated names** (fictional compliance details — real names for demo recognition only):
+These are all real, well-known Indian startups (several are YC alumni). Their compliance details in this app are entirely fictional — used for demo recognition only.
 
-| Category | Examples |
-|----------|----------|
+**Full curated list:**
+
+| Category | Companies |
+|----------|-----------|
 | Fintech | Razorpay, CRED, PhonePe, Paytm, Cashfree, Zerodha, Groww, BharatPe |
 | Commerce | Flipkart, Meesho, Nykaa, Zepto, Zomato, Swiggy |
-| SaaS / devtools | Postman, Freshworks, Khatabook, ClearTax, SpotDraft, Apna |
+| SaaS & devtools | Postman, Freshworks, Khatabook, ClearTax, SpotDraft, Apna |
 | Mobility / health / edtech | Ola, OYO, Urban Company, Practo, Unacademy |
 
-**Fictional companies** (full risk range for demos):
+**Fictional companies** (these show the full risk spectrum for demo purposes):
 
-- `Mumbai Chai` — high risk (overdue GST + MCA + notices)  
-- `Hyderabad Health` — worst-case  
-- `Chennai Coders` — medium  
-- `Bengaluru Bytes` — clean  
+- **Mumbai Chai** — High risk. Overdue GST, overdue MCA, multiple notices.
+- **Hyderabad Health** — Worst-case scenario. Score near zero.
+- **Chennai Coders** — Medium risk. A few things slipping.
+- **Bengaluru Bytes** — Clean. Score of 100.
 
-Type anything else — you’ll get a **sample** profile with a banner in the result card.
+**Type literally anything else** — you'll get a synthetic profile, clearly marked as sample data.
 
 ---
 
-## Record a demo GIF / video
+## Recording a demo video
 
 With the dev server running:
 
 ```bash
-node scripts/record-demo.mjs    # → .recordings/compliscore-demo.webm
-bash scripts/encode-demo.sh     # → compliscore-demo.mp4 + compliscore-demo.gif
+node scripts/record-demo.mjs     # captures a webm via headless Playwright
+bash scripts/encode-demo.sh      # encodes to MP4 (1.2 MB) + GIF (6.6 MB)
 ```
 
-Requires Playwright (dev dependency) and ffmpeg. Output files are gitignored — upload them to X, LinkedIn, or your README separately.
+The script clicks through Razorpay (clean, score 100) and Khatabook (action items, score 75), scrolls through the AI action plan and lead form, and produces a ~20-second reel ready for X or LinkedIn.
+
+Output files are gitignored. Upload them directly wherever you need them.
 
 ---
 
-## Lead capture setup
+## Setting up lead capture
 
-1. Create a webhook (e.g. Discord: Server Settings → Integrations → Webhooks → New Webhook).  
-2. Paste the URL into `LEAD_WEBHOOK_URL` in `.env.local` (and Vercel env in production).  
-3. Submit the form on a scan result — you should see the payload in your channel.
+1. **Create a webhook.** For Discord: Server Settings → Integrations → Webhooks → New Webhook → Copy URL. Similar for Slack, Zapier, etc.
+2. **Paste the URL** into `LEAD_WEBHOOK_URL` in `.env.local` (and in Vercel environment variables for production).
+3. **Test it.** Run a scan, fill in the lead form at the bottom of the result, submit. You should see the payload arrive in your channel.
 
-Payload includes company name, score, risk level, and contact. Full fulfilment workflow: **[PLAYBOOK.md](./PLAYBOOK.md)**.
+Each lead includes: company name, score, risk level, industry, and the founder's contact info. See [PLAYBOOK.md](./PLAYBOOK.md) for the complete playbook on turning leads into paid scans.
 
 ---
 
-## Deploy
+## Deploying to production
 
-1. Push to GitHub.  
-2. Import the repo in [Vercel](https://vercel.com).  
-3. Add environment variables: `GROQ_API_KEY`, `LEAD_WEBHOOK_URL`.  
-4. Deploy — no other infra.
+1. Push to GitHub.
+2. Import the repo in [Vercel](https://vercel.com).
+3. Add `GROQ_API_KEY` and `LEAD_WEBHOOK_URL` as environment variables.
+4. Hit deploy.
+
+That's it. No database to provision, no background workers, no cron jobs. It runs on Vercel's free tier.
 
 ---
 
 ## Disclaimer
 
-- All compliance numbers, PANs, and GSTINs in `lib/mock-data.ts` are **invented for demonstration**. They are format-plausible placeholders, not real identifiers.  
-- Penalty estimates are **directional** — meant to create urgency, not to use in front of a tax officer.  
-- CompliScore is a **diagnostic tool**, not legal or tax advice.
+- All compliance data in this app is **fictional and for demonstration only**. PAN and GSTIN values are format-plausible placeholders, not real government-issued identifiers.
+- Penalty estimates are **rough and directional** — they exist to create awareness, not to be cited in front of a tax officer.
+- CompliScore is a **diagnostic tool**, not legal or tax advice. For real filings and compliance work, consult a Chartered Accountant.
 
 ---
 
-## License
-
-Private project — all rights reserved unless you add a license file.
-
-Built with Next.js, Groq, and a lot of chai ☕
+Built with Next.js, Groq, and a lot of chai.
