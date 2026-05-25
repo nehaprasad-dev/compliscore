@@ -222,4 +222,4 @@ That's it. No database to provision, no background workers, no cron jobs. It run
 
 ---
 
-Built with Next.js, Groq, and a lot of chai.
+Built with Next.js, Groq, and a lot of coffee.
