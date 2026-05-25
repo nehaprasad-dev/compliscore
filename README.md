@@ -1,12 +1,12 @@
 # CompliScore
 
-### Your startup's compliance health — checked in 60 seconds.
+### Your startup's compliance health checked in 60 seconds.
 
 Every Indian startup founder knows the feeling. You're moving fast, shipping product, chasing revenue — and somewhere in the back of your mind there's a quiet voice asking: *"Have we filed everything? Are we going to get a notice?"*
 
 CompliScore answers that question before it becomes a problem.
 
-Type any company name. In under two seconds you get a **compliance score out of 100**, a list of what's overdue, a rough penalty estimate, and an **AI-written action plan** in plain English — not CA jargon.
+Type any company name. In under two seconds you get a **compliance score out of 100**, a list of what's overdue, a rough penalty estimate, and an **AI-written action plan** in plain English - not CA jargon.
 
 It's free, it's instant, and it runs on your phone. No login, no documents, no waiting.
 
@@ -14,7 +14,7 @@ It's free, it's instant, and it runs on your phone. No login, no documents, no w
 
 ## The problem it solves
 
-India's startup ecosystem is booming, but compliance is still confusing. GST returns, MCA annual filings, TDS deadlines, random notices — most early-stage founders don't know where they stand until a CA tells them they're behind. By then, penalties have already started piling up.
+India's startup ecosystem is booming, but compliance is still confusing. GST returns, MCA annual filings, TDS deadlines, random notices - most early-stage founders don't know where they stand until a CA tells them they're behind. By then, penalties have already started piling up.
 
 There's no simple way for a non-finance founder to just *check* if things are okay. That's what CompliScore is for.
 
